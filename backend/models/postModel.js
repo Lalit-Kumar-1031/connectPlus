@@ -21,7 +21,7 @@ const postSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
-    commets: [
+    comments: [
         {
             user: {
                 type: mongoose.Schema.Types.ObjectId,
@@ -31,7 +31,7 @@ const postSchema = new mongoose.Schema({
                 type: String,
                 required: true
             },
-            commet: {
+            comment: {
                 type: String,
                 required: true
             }
