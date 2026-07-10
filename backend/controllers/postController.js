@@ -158,26 +158,71 @@ export const commentOnPostController = async (req, res) => {
 // Delete Comment with comment id
 export const deleteCommentController = async (req, res) => {
     try {
+        console.log("Step 0");
 
         const { postId, commentId } = req.body;
 
-        if(!postId|| !commentId){
-            return res.status(400).json({message:"Please provide post Id and commet Id"});
+        if (!postId || !commentId) {
+            return res.status(400).json({ message: "Please provide post Id and commet Id" });
         }
+        console.log("Step 1");
         let post = await Post.findById(postId);
         let currentUserId = req.user._id.toString();
+
+        console.log("Step 2");
 
         if (!post) {
             return res.status(400).json({ message: "Post not found" });
         }
 
-        post.comments = post.comments.filter((singleComment) => singleComment._id.toString() !== commentId);
+        let commentIndex = post.comments.findIndex((item) => item._id.toString() === commentId.toString());
 
-        await post.save();
+        if (commentIndex === -1) { // no comment exist with that comment id
+            return res.json({ message: "Comment not found" });
+        }
+        console.log("Step 3");
 
-        res.json({ message: "Comment deleted", post });
+        let comment = post.comments[commentIndex];
+
+        if (post.author.toString() === currentUserId || comment.user.toString() === currentUserId) {
+
+            post.comments.splice(commentIndex, 1);
+            await post.save();
+
+            res.json({ message: "Comment deleted", post });
+
+        } else {
+            res.json({ message: "You dont have access to delete this comment" });
+        }
+
 
     } catch (error) {
+        console.log("Error in delete Comment ->", error.message);
         res.status(500).json({ message: error.message });
+    }
+}
+
+// Edit Post Caption
+export const editPostCaptionController = async (req, res) => {
+    try {
+
+        let post = await Post.findById(req.params.id);
+
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+
+        //check you are the owner of the post
+        if (post.author.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: "You dont have access to edit this post" });
+        }
+
+        post.caption = req.body.caption;
+        await post.save();
+
+        return res.json({ message: "Post Updated", post });
+
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
     }
 }

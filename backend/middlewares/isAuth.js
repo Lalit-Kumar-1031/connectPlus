@@ -18,6 +18,7 @@ export const isAuth = async (req, res, next) => {
     req.user = await User.findById(tokenData.id);
     next();
   } catch (error) {
+    console.log("Error in Auth =>",error.message);
     res.status(500).json({ message: error.message });
   }
 };
